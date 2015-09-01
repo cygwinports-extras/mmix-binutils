@@ -1,0 +1,41 @@
+TOOLCHAIN_TARGET="mmix"
+inherit toolchain
+
+NAME="mmix-binutils"
+VERSION=2.25.1
+RELEASE=1
+CATEGORY="Devel"
+SUMMARY="Binutils for MMIXware"
+DESCRIPTION="Assember, linker, and other binary utilities required for the
+Newlib cross-compiler embedded toolchains."
+HOMEPAGE="http://www.gnu.org/software/binutils/"
+case ${VERSION} in
+*.*.[5-9][0-9])
+	SRC_URI="mirror://sourceware/binutils/snapshots/binutils-${VERSION}.tar.bz2" ;;
+*)	SRC_URI="mirror://gnu/binutils/binutils-${VERSION}.tar.bz2" ;;
+esac
+SRC_DIR="binutils-${VERSION%[a-z]}"
+# prevent catalogs from colliding with native binutils (which may differ)
+PATCH_URI="
+	2.25-textdomain.patch
+"
+
+CYGCONF_ARGS="
+	--disable-werror
+	--enable-multilib
+	--disable-gdb
+	--disable-libdecnumber
+	--disable-readline
+	--disable-sim
+"
+
+src_install() {
+	cd ${B}
+	cyginstall
+
+	# these binaries do not apply to these arches
+	rm -f ${D}/usr/share/man/man1/*-{dlltool,nlmconv,windmc,windres}.*
+
+	# conflicts with native binutils
+	rm -fr ${D}/usr/lib/ ${D}/usr/share/info/
+}
